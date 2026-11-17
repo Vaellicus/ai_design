@@ -1,0 +1,8 @@
+{
+  "servers": {
+    "rhino": {
+      "command": "rhino-mcp-router",
+      "args": ["--default-version", "9"]
+    }
+  }
+}
