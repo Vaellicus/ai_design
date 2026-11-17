@@ -1,8 +1,11 @@
 {
   "servers": {
     "rhino": {
-      "command": "rhino-mcp-router",
-      "args": ["--default-version", "9"]
+      "type": "stdio",
+      "command": "C:\\Users\\marco\\AppData\\Roaming\\McNeel\\Rhinoceros\\ai\\bin\\rhino-mcp-router.exe",
+      "env": {
+        "RHINO_MCP_DEFAULT_VERSION": "9"
+      }
     }
   }
 }

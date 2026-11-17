@@ -1,182 +1,117 @@
-# AI Design - Rhino 9 + GitHub Copilot MCP Integration
+# Rhino 9 and GitHub Copilot MCP
 
-This repository integrates **Rhinoceros 9** with **GitHub Copilot** using the Model Context Protocol (MCP). This allows you to use Copilot to generate, analyze, and automate Rhino scripts directly from VS Code.
+GitHub Copilot can act as an MCP client for Rhino 9 from VS Code. The previous
+setup in this repository was incorrect: the router was not on `PATH`, and it
+incorrectly told Rhino 9 users to install the Rhino 8-only Yak package.
 
-## Prerequisites
+## What Rhino 9 includes
 
-- **Rhinoceros 9** (WIP/BETA or later)
-- **VS Code 1.99+** with:
-  - GitHub Copilot extension
-  - GitHub Copilot Chat extension
-  - Both extensions signed in with your GitHub account
-- **Node.js** (for running the MCP router)
+On this Windows installation, Rhino 9 already contains:
 
-## Setup Instructions
+- `C:\Program Files\Rhino 9\Plug-ins\RhinoAI\net8.0\RhinoAI.rhp`
+- `C:\Program Files\Rhino 9\Plug-ins\RhinoAI\router\win-x64\rhino-mcp-router.exe`
+- A staged copy under
+  `%APPDATA%\McNeel\Rhinoceros\ai\bin\rhino-mcp-router.exe`
 
-### Step 1: Install the Rhino MCP Plugin
+The Rhino 9 build is bundled with Rhino, so do **not** install
+`Rhino-MCP-Platform` in Rhino 9. The official project's build packages that
+Yak package only for Rhino 8; the Rhino 9 version is shipped inside Rhino.
 
-1. Open **Rhinoceros 9**
-2. Run the `PackageManager` command
-3. Search for and install **Rhino-MCP-Platform**
-4. Restart Rhino to complete installation
+The configured router was tested locally and identified itself as
+`rhino-mcp-router Rhino 9.1` during an MCP `initialize` exchange. This verifies
+the executable and protocol handshake, but it is not an end-to-end test of
+geometry operations while Rhino is running.
 
-### Step 2: Get the MCP Connection Command
+## VS Code configuration
 
-1. In Rhino 9, run the `MCPConnect` command
-2. This will output the MCP server configuration details needed for Copilot
-3. The command output should include something like:
-   ```
-   rhino-mcp-router --default-version 9
-   ```
-
-### Step 3: MCP Configuration Already Set Up ✅
-
-The file [`.vscode/mcp.json`](.vscode/mcp.json) is already configured in this repository:
+The workspace configuration is [`.vscode/mcp.json`](.vscode/mcp.json):
 
 ```json
 {
   "servers": {
     "rhino": {
-      "command": "rhino-mcp-router",
-      "args": ["--default-version", "9"]
+      "type": "stdio",
+      "command": "C:\\Users\\marco\\AppData\\Roaming\\McNeel\\Rhinoceros\\ai\\bin\\rhino-mcp-router.exe",
+      "env": {
+        "RHINO_MCP_DEFAULT_VERSION": "9"
+      }
     }
   }
 }
 ```
 
-### Step 4: Activate Agent Mode in VS Code
+This is the exact configuration printed by `MCPConnect` on this machine. The
+router is staged in Rhino's app-data directory so it remains reachable outside
+the Rhino installation directory. Do not manually substitute another user's
+profile path when moving this workspace to a different computer; rerun
+`MCPConnect` there and copy its output.
 
-1. Open **Copilot Chat** in VS Code
-   - If not visible, press `Ctrl+Shift+I` (Windows) or `Cmd+Shift+I` (Mac)
-2. Look for the **mode selector** at the top of the chat panel
-3. Switch from **Ask** mode to **Agent** mode
-4. You should now see the `rhino` server and its tools listed
+## Connect
 
-### Step 5: Reload VS Code
+1. Start Rhino 9 and open a document.
+2. In Rhino, run `MCPConnect`.
+   - If `MCPConnect` prints a different router command, update
+     [`.vscode/mcp.json`](.vscode/mcp.json) with that output.
+   - In builds that expose `MCPStart` instead, run it to start the MCP listener.
+3. Reload VS Code with **Developer: Reload Window**.
+4. Open GitHub Copilot Chat and select **Agent** mode.
+5. Open the tool picker and confirm that the `rhino` server and its tools are
+   available.
 
-Press `Ctrl+Shift+P` and select "Reload Window" to ensure the MCP configuration is loaded.
+`RHINO_MCP_DEFAULT_VERSION=9` selects Rhino 9. The router is a client-side
+bridge; it does not replace the listener running in Rhino.
 
----
+## Verify end to end
 
-## Testing the Connection
+Use a small, reversible prompt first:
 
-Once everything is set up, try these test prompts in **Agent mode** to verify the connection:
-
-### Test 1: Simple Geometry Query
-```
-What objects are currently in the Rhino document?
-```
-
-### Test 2: Create a Basic Shape
-```
-Create a sphere with radius 5 at the origin in Rhino.
-```
-
-### Test 3: Get Document Info
-```
-What is the current unit system in Rhino?
+```text
+Report the unit system and object count in the current Rhino document.
+Do not modify the document.
 ```
 
-### Test 4: Analyze Geometry
-```
-Create a 10x10 rectangle and tell me its area.
-```
+Then test a write:
 
-### Test 5: Advanced Scripting
-```
-In Rhino, create a grid of spheres (3x3x3) with 2 units spacing between them.
+```text
+Create one point at (0, 0, 0) in the current Rhino document.
 ```
 
----
-
-## Project Structure
-
-```
-ai_design/
-├── .vscode/
-│   └── mcp.json              # MCP configuration for Rhino 9
-├── .git/                     # Git repository
-└── README.md                 # This file
-```
-
----
-
-## How to Use Copilot with Rhino
-
-### Basic Workflow
-
-1. **Open Copilot Chat** in Agent mode
-2. **Ask a question or request** related to Rhino geometry/scripting
-3. **Copilot will:**
-   - Access Rhino's MCP tools
-   - Execute commands in Rhino
-   - Query document state
-   - Return results with Rhino geometry/data
-
-### Example Interactions
-
-**Request:** "Draw a spiral curve with 10 turns"
-**Copilot will:** Execute Rhino commands to create the spiral
-
-**Request:** "List all curves in the document and their lengths"
-**Copilot will:** Query Rhino objects and report back
-
-**Request:** "Create a parametric design with 100 random spheres between z=0 and z=10"
-**Copilot will:** Generate and execute the script
-
----
+Delete the point after confirming it appears. If the tools are listed but
+calls fail, keep Rhino open and inspect the Copilot Chat MCP log and Rhino's
+command history. Verify that Rhino's MCP listener is active.
 
 ## Troubleshooting
 
-### "Rhino server not found in tool picker"
+### `rhino-mcp-router` not found
 
-1. ✅ Verify `.vscode/mcp.json` exists and contains the correct configuration
-2. ✅ Confirm you're in **Agent mode** (not Ask mode)
-3. ✅ Reload VS Code: `Ctrl+Shift+P` → "Reload Window"
-4. ✅ Verify `rhino-mcp-router` is installed/accessible in your PATH
+The executable is not on `PATH`. Use its full path as shown in
+`.vscode/mcp.json`, or use the command printed by Rhino's `MCPConnect` command.
 
-### "MCPConnect command not found in Rhino"
+### The server starts but Rhino tools cannot be called
 
-1. ✅ Confirm Rhino 9 is running
-2. ✅ Verify the **Rhino-MCP-Platform** plugin is installed
-3. ✅ Restart Rhino after installation
+Rhino may not have an active MCP listener:
 
-### Copilot says "No tools available"
+1. Run `MCPConnect` or `MCPStart` in Rhino.
+2. Keep the Rhino 9 process and the target document open.
+3. Reload VS Code after Rhino starts.
+4. Retry the read-only verification prompt.
 
-1. ✅ Make sure Rhino 9 is running (MCP server must be active)
-2. ✅ Check that you're using Rhino 9, not Rhino 8
-3. ✅ Verify `args` in `.vscode/mcp.json` has `"--default-version", "9"`
+### Rhino 9 versus Rhino 8
 
-### Connection Issues
+- **Rhino 9:** RhinoAI and the router ship inside Rhino.
+- **Rhino 8:** install the `Rhino-MCP-Platform` Yak package and use
+  `RHINO_MCP_DEFAULT_VERSION=8` or the equivalent `--default-version 8` option.
 
-If Copilot can't connect to Rhino:
+Do not use the Rhino 8 package as a Rhino 9 installation procedure.
 
-1. Check VS Code Output panel: Look for "MCP" or "rhino" logs
-2. Verify Rhino is running and responsive
-3. Try reloading the VS Code window
-4. Restart Rhino and reload VS Code in that order
+## Official references
 
----
+- [McNeel Copilot instructions](https://mcneel.github.io/RhinoAI/docs/getting-started/copilot/)
+- [RhinoAI source repository](https://github.com/mcneel/RhinoAI)
+- [Current RhinoAI release](https://github.com/mcneel/RhinoAI/releases/latest)
 
-## Documentation
-
-- [Rhino MCP Documentation](https://mcneel.github.io/RhinoAI/docs/getting-started/copilot/)
-- [GitHub Copilot Docs](https://github.com/features/copilot)
-- [Model Context Protocol (MCP)](https://modelcontextprotocol.io/)
-
----
-
-## Next Steps
-
-After verifying the connection:
-
-1. **Create Rhino scripts** using Copilot
-2. **Store custom tools** in this repository
-3. **Document design workflows** that use Copilot + Rhino
-4. **Build automated design systems** leveraging both platforms
-
----
-
-## Questions or Issues?
-
-Refer to the [official Rhino MCP documentation](https://mcneel.github.io/RhinoAI/docs/) or check the VS Code MCP server logs in the Output panel.
+The official Copilot page currently has potentially confusing wording: its
+plugin-install section is marked “Rhino 8 only,” while its later note mentions
+`--default-version 9` for Rhino 9. The RhinoAI build configuration resolves
+that contradiction: Rhino 9 is bundled with Rhino and is not packaged as a Yak
+plugin.
