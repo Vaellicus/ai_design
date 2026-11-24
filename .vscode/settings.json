@@ -1,0 +1,8 @@
+{
+  "python.analysis.extraPaths": [
+    "${workspaceFolder}/scripts"
+  ],
+  "files.associations": {
+    "*.blend.py": "python"
+  }
+}

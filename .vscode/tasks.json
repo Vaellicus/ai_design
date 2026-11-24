@@ -1,0 +1,27 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Blender: Run active script",
+      "type": "shell",
+      "command": "C:\\Program Files\\Blender Foundation\\Blender 5.3\\blender-launcher.exe",
+      "args": [
+        "--factory-startup",
+        "--python",
+        "${file}"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "Blender: Run sample sphere script",
+      "type": "shell",
+      "command": "C:\\Program Files\\Blender Foundation\\Blender 5.3\\blender-launcher.exe",
+      "args": [
+        "--factory-startup",
+        "--python",
+        "${workspaceFolder}\\scripts\\blender_sample_sphere.py"
+      ],
+      "problemMatcher": []
+    }
+  ]
+}

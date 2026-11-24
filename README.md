@@ -115,3 +115,19 @@ plugin-install section is marked “Rhino 8 only,” while its later note mentio
 `--default-version 9` for Rhino 9. The RhinoAI build configuration resolves
 that contradiction: Rhino 9 is bundled with Rhino and is not packaged as a Yak
 plugin.
+
+## Blender control from VS Code
+
+This workspace also includes a task-based Blender scripting workflow:
+
+- [`.vscode/tasks.json`](.vscode/tasks.json)
+- [`scripts/blender_sample_sphere.py`](scripts/blender_sample_sphere.py)
+
+Configured Blender launcher:
+
+`C:\Program Files\Blender Foundation\Blender 5.3\blender-launcher.exe`
+
+Available tasks:
+
+- **Blender: Run active script** (runs the currently open Python file)
+- **Blender: Run sample sphere script** (creates a 10 mm radius sphere at origin)
